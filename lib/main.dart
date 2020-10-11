@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:quizzler/quiz_brain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 void main() => runApp(Quizzler());
 
@@ -25,6 +27,23 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  QuizBrain quizBrain = QuizBrain();
+
+  List<Icon> scorekeeper = [];
+
+  void addScore(IconData icon, MaterialColor colorValue) {
+    scorekeeper.add(Icon(
+      icon,
+      color: colorValue,
+    ));
+  }
+
+  void updateScore(bool userAnswer) {
+    quizBrain.checkAnswer(userAnswer)
+        ? addScore(Icons.check, Colors.green)
+        : addScore(Icons.close, Colors.red);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +56,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -61,7 +80,9 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                //The user picked true.
+                setState(() {
+                  checkAndUpdateScoreElseThrowAlert(true);
+                });
               },
             ),
           ),
@@ -79,14 +100,77 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                //The user picked false.
+                setState(() {
+                  checkAndUpdateScoreElseThrowAlert(false);
+                });
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(
+          children: scorekeeper,
+        )
       ],
     );
+  }
+
+  void checkAndUpdateScoreElseThrowAlert(bool user_answer) {
+    updateScore(user_answer);
+    if (quizBrain.questionsStillRemaining()) {
+      quizBrain.incrementQuestionNumber();
+    } else {
+      produceAlert();
+      resetEverything();
+    }
+  }
+
+  void produceAlert() {
+    AlertStyle alertStyle = getAlertStyle();
+    Alert(
+      context: context,
+      style: alertStyle,
+      type: AlertType.info,
+      title: "Finished!",
+      desc: "Quiz has ended.",
+      buttons: [
+        DialogButton(
+          child: Text(
+            "Start again.",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+          color: Color.fromRGBO(0, 179, 134, 1.0),
+          radius: BorderRadius.circular(0.0),
+        ),
+      ],
+    ).show();
+  }
+
+  AlertStyle getAlertStyle() {
+    var alertStyle = AlertStyle(
+      animationType: AnimationType.fromBottom,
+      isCloseButton: true,
+      isOverlayTapDismiss: true,
+      descStyle: TextStyle(fontWeight: FontWeight.bold),
+      descTextAlign: TextAlign.start,
+      animationDuration: Duration(milliseconds: 400),
+      alertBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(0.0),
+        side: BorderSide(
+          color: Colors.grey,
+        ),
+      ),
+      titleStyle: TextStyle(
+        color: Colors.red,
+      ),
+      alertAlignment: Alignment.center,
+    );
+    return alertStyle;
+  }
+
+  void resetEverything() {
+    quizBrain.resetQuestionNumber();
+    scorekeeper.clear();
   }
 }
 
