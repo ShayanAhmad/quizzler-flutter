@@ -17,4 +17,4 @@ A simple Quiz Application using Flutter.
 - The difference between var, const and final.
 
 ### Instructor Credits:
-[LondonAppBrewery]([www.appbrewery.co](https://www.appbrewery.co/)
+[LondonAppBrewery](https://www.appbrewery.co/)
